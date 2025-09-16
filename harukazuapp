@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>とうせいの謎｜第2章 血液型占い × TMC</title>
+<style>
+  :root{
+    --bg:#fff7fb; --card:#ffffff; --text:#2a2a2a; --muted:#6b7280;
+    --accent:#ff7ac6; --ok:#16a34a; --ng:#ef4444; --ring:#ffd5ec;
+    --gold:#ffcc66; --spark:#fff2a8;
+  }
+  html,body{height:100%}
+  body{
+    margin:0; background:linear-gradient(180deg,#fff7fb 0%, #f5fbff 100%);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,Arial,sans-serif;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .wrap{max-width:900px; margin:0 auto; padding:20px 16px 64px;}
+  header{display:flex; align-items:center; gap:12px; margin:6px 0 10px;}
+  header h1{font-size:26px; margin:0;}
+  .mascot{width:40px; height:40px; border-radius:12px; box-shadow:0 6px 16px rgba(0,0,0,.08);}
+  .card{background:var(--card); border-radius:20px; box-shadow:0 10px 24px rgba(255,122,198,.15);
+        padding:18px; margin:14px 0; border:2px solid var(--ring);}
+  .question{font-size:20px; font-weight:700; margin:8px 0 4px;}
+  .lead{color:var(--muted); margin-top:2px;}
+  .choices{display:grid; gap:10px; margin-top:12px;}
+  .choice-btn{width:100%; text-align:left; padding:14px 16px; border-radius:16px; border:2px solid #e7f2ff; background:#fff; cursor:pointer; font-size:16px;}
+  .choice-btn:hover{border-color:#cfe7ff; background:#f7fbff;}
+  .result{margin-top:10px; font-weight:800; font-size:18px;}
+  .ok{color:var(--ok);} .ng{color:var(--ng);}
+  .subtitle{font-weight:800; color:#1f2937; margin:6px 0 10px; font-size:18px;}
+  .muted-box{background:#fff5fa; border:2px dashed #ffd2ea; padding:10px 12px; border-radius:14px; color:#374151;}
+  .explain{margin-top:12px; text-align:left; background:#f7fbff; border:2px solid #dbeafe; border-radius:14px; padding:12px;}
+  .fade{animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:none}}
+  @media (max-width:560px){
+    header h1{font-size:22px}
+    .question{font-size:18px}
+    .choice-btn{font-size:15px; padding:14px}
+    .btn{width:100%}
+  }
+  /* ボタン */
+  .btn{
+    display:inline-block; padding:14px 18px; border-radius:16px; border:none; cursor:pointer; font-size:16px;
+    background:linear-gradient(90deg,var(--accent),#ffa7d8); color:#fff; box-shadow:0 8px 18px rgba(255,122,198,.35);
+  }
+  .btn:disabled{opacity:.6; cursor:not-allowed;}
+  .btn.alt{background:linear-gradient(90deg,#8ec5ff,#b5e1ff);}
+  .btn.ghost{ background:#fff; color:#ff4fae; border:2px solid #ffb4df; box-shadow:none; }
+
+  /* 入力フォーム（縦並び） */
+  .form-vertical{display:flex; flex-direction:column; gap:12px;}
+  label{font-size:14px; color:var(--muted); margin-bottom:6px;}
+  input{
+    width:100%; padding:14px 14px; font-size:16px; border-radius:14px; border:2px solid #ffdff0; background:#fff; outline:none;
+  }
+  input:focus{border-color:#ffb3dc; box-shadow:0 0 0 4px #ffe6f4;}
+
+  /* ヒーロー（紹介） */
+  .hero{
+    display:flex; flex-direction:column; align-items:center; text-align:center; gap:10px;
+  }
+  .hero img{ width:min(68vw, 300px); height:auto; border-radius:24px; box-shadow:0 10px 26px rgba(0,0,0,.12); }
+  .speech{
+    background:#ffffff; border:2px solid #ffd5ec; border-radius:18px; padding:12px 14px; line-height:1.7;
+    position:relative; max-width:680px;
+  }
+  .speech:after{
+    content:""; position:absolute; top:100%; left:50%; transform:translateX(-50%);
+    border:10px solid transparent; border-top-color:#ffd5ec;
+  }
+  .speech:before{
+    content:""; position:absolute; top:calc(100% + 2px); left:50%; transform:translateX(-50%);
+    border:10px solid transparent; border-top-color:#ffffff;
+  }
+
+  /* 正解スタンプ */
+  .stamp{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(255,255,255,.75); z-index:50;}
+  .stamp img{width:min(70vw,380px); height:auto; filter:drop-shadow(0 10px 24px rgba(0,0,0,.2)); animation:pop .5s ease;}
+  @keyframes pop{0%{transform:scale(.6) rotate(-6deg); opacity:0}60%{transform:scale(1.05) rotate(2deg); opacity:1}100%{transform:scale(1) rotate(0)}}
+
+  /* ===== エンディング豪華版 ===== */
+  #screen-ending{ position:relative; overflow:hidden; }
+  .ending-wrap{ display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center; }
+  .ending-hero{
+    width:min(80vw, 420px); height:auto;
+    border-radius:28px; box-shadow:0 18px 40px rgba(255,122,198,.35);
+    outline:6px solid rgba(255, 213, 236, .6);
+  }
+  .ending-title{
+    font-size:24px; font-weight:900; letter-spacing:.02em;
+    background:linear-gradient(90deg,#ff7ac6,#ffcc66); -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .ending-lines{
+    line-height:1.9; font-size:16px; color:#374151;
+    background:#fffef3; border:2px solid #ffefb6; border-radius:16px; padding:10px 14px;
+  }
+  .ending-badge{
+    display:inline-block; padding:8px 12px; border-radius:999px;
+    background:linear-gradient(90deg,#ffd591,#ffe9b6); color:#6b4000; font-weight:800; font-size:13px;
+    border:1px solid #f6c66f; box-shadow:0 6px 16px rgba(255,204,102,.35);
+  }
+  .ending-actions{ display:flex; gap:10px; margin-top:6px; flex-wrap:wrap; justify-content:center; }
+
+  /* 紙吹雪 */
+  .confetti{ pointer-events:none; position:absolute; inset:0; overflow:hidden; }
+  .confetti span{
+    position:absolute; top:-10px; width:10px; height:16px; opacity:.9;
+    animation:fall 2.8s linear forwards; transform:rotate(0deg);
+  }
+  @keyframes fall{
+    0%{ transform:translateY(-10px) rotate(0deg); }
+    100%{ transform:translateY(120vh) rotate(540deg); }
+  }
+  /* キラキラ */
+  .sparkles{ pointer-events:none; position:absolute; inset:0; }
+  .spark{
+    position:absolute; width:10px; height:10px; background:radial-gradient(circle, var(--spark) 0%, rgba(255,255,255,0) 70%);
+    animation:blink 1.6s ease-in-out infinite;
+  }
+  @keyframes blink{ 0%,100%{opacity:0.2} 50%{opacity:1} }
+
+  /* ===== 占い演出（結果ページ） ===== */
+  .fortune-wrap{
+    display:flex; flex-direction:column; align-items:center; gap:10px; margin-top:10px;
+  }
+  .tarot-hero{
+    width:min(62vw, 260px); height:auto; border-radius:22px;
+    box-shadow:0 12px 24px rgba(0,0,0,.12);
+    outline:4px solid rgba(255,213,236,.6);
+  }
+  .fortune-lines{
+    background:#ffffff; border:2px solid #ffd5ec; border-radius:16px; padding:10px 12px; line-height:1.9;
+    min-height:72px; max-width:680px; text-align:left;
+  }
+  .fortune-line{ opacity:0; transform:translateY(4px); animation:fade .3s ease forwards; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <img src="mame2.png" alt="とせいくん（第2章）" class="mascot" />
+      <h1>🎯 とうせいの謎｜第2章 血液型占い × TMC</h1>
+    </header>
+
+    <!-- 入力画面 -->
+    <section id="screen-intro" class="card fade">
+      <div class="hero">
+        <img src="mame2.png" alt="とせいくん（第2章）" />
+        <div class="speech">
+          <strong>ぼくは とせいくん。</strong><br>
+          第2章は <strong>血液型占い風の導入</strong> から始まるよ。<br>
+          <strong>あなたのこと、教えて！</strong>
+        </div>
+      </div>
+
+      <div style="height:8px;"></div>
+
+      <div class="form-vertical">
+        <div>
+          <label for="name">名前</label>
+          <input id="name" type="text" placeholder="例）フルネーム" />
+        </div>
+        <div>
+          <label for="group">所属</label>
+          <input id="group" type="text" placeholder="例）外来／〇〇病棟／リハ など" />
+        </div>
+        <div>
+          <label for="job">職種</label>
+          <input id="job" type="text" placeholder="例）看護師／医師／薬剤師 など" />
+        </div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <button class="btn" id="go-pre">次へ</button>
+      </div>
+    </section>
+
+    <!-- 診断スタート画面 -->
+    <section id="screen-pre" class="card fade" style="display:none;">
+      <div id="pre-title" class="subtitle"></div>
+      <div class="muted-box" style="margin:10px 0 14px;">
+        🔮 <strong>血液型占い風・探偵診断</strong><br/>
+        直感で選んだ答えが、あなたの<strong>推理スタイル</strong>を映し出す…！<br/>
+        とせい占い、はじまるよ。
+      </div>
+      <button class="btn alt" id="begin-diag">診断をはじめる</button>
+    </section>
+
+    <!-- 診断（3問→4タイプ） -->
+    <section id="screen-diag" class="card fade" style="display:none;">
+      <div class="question" id="diag-q"></div>
+      <div class="choices" id="diag-choices"></div>
+      <div class="lead" id="diag-progress" style="margin-top:8px;"></div>
+    </section>
+
+    <!-- 診断結果（占い演出） -->
+    <section id="screen-diag-result" class="card fade" style="display:none;">
+      <div id="type-title" class="question"></div>
+      <div id="type-copy" class="lead"></div>
+
+      <div class="fortune-wrap">
+        <img src="mame2.png" alt="タロットを持つとせいくん" class="tarot-hero" />
+        <div id="fortune-lines" class="fortune-lines"></div>
+      </div>
+
+      <ul id="type-desc" style="text-align:left; line-height:1.8;"></ul>
+      <div class="muted-box" style="margin-top:12px;">
+        あなたの探偵タイプがわかりました。<br/>
+        その個性を活かして<strong>とうせいの謎 第2章</strong>に挑もう！
+      </div>
+      <button class="btn" id="to-quiz" style="margin-top:14px;">第1問へ進む</button>
+    </section>
+
+    <!-- 本編Q1〜Q3（TMC） -->
+    <section id="screen-quiz" class="card fade" style="display:none;">
+      <div id="story" class="lead" style="margin-bottom:8px;"></div>
+      <div style="text-align:center; margin:10px 0;">
+        <img id="quiz-img" src="" alt="謎の画像" style="max-width:100%; border-radius:14px; box-shadow:0 4px 12px rgba(0,0,0,0.1);" />
+      </div>
+      <div id="q-title" class="question"></div>
+      <div id="choices" class="choices"></div>
+      <div id="judge" class="result"></div>
+      <div id="explain" class="explain" style="display:none;"></div>
+      <div id="next-area" style="display:none; margin-top:12px;">
+        <button id="next-btn" class="btn">次へ</button>
+      </div>
+    </section>
+
+    <!-- エンディング -->
+    <section id="screen-ending" class="card fade" style="display:none;">
+      <div class="ending-wrap">
+        <div class="ending-title">🎉 クリアおめでとう！（第2章）</div>
+        <img src="mame2.png" alt="とせいくん" class="ending-hero" />
+        <div class="ending-lines">
+          <div class="ending-badge">とうせいの謎・名探偵認定</div>
+          <div id="ending-text" style="margin-top:6px;"></div>
+          <div style="margin-top:6px;">
+            12月は <strong>TMC（とうせいメディカルカップ）</strong> に注目だ！！🏆✨<br>
+            TMCのことで聞きたいことがあればいつでもPHS6693に連絡してね。
+          </div>
+        </div>
+        <div class="ending-actions">
+          <button class="btn ghost" id="finish-btn">今回の調査を終了する</button>
+        </div>
+        <div id="finish-message" style="display:none; margin-top:10px; font-weight:800; color:#374151;">
+          お疲れ様でした。ありがとうございました。
+        </div>
+      </div>
+      <div class="confetti" id="confetti"></div>
+      <div class="sparkles" id="sparkles"></div>
+    </section>
+  </div>
+
+  <!-- 正解スタンプ -->
+  <div id="stamp" class="stamp" aria-hidden="true">
+    <img src="nazotoki2.png" alt="正解スタンプ" />
+  </div>
+
+  <!-- サウンド（第2章向け） -->
+  <audio id="bgm" src="nazotoki2.mp3" preload="none" loop></audio>
+  <audio id="seClick" src="pochi.mp3" preload="auto"></audio>
+  <audio id="seCorrect" src="pinpon.mp3" preload="auto"></audio>
+  <audio id="seClear" src="seikou.mp3" preload="auto"></audio>
+
+<script>
+  /* =========================
+     Googleフォーム 送信設定
+     ========================= */
+  const GOOGLE_FORM_ACTION =
+    "https://docs.google.com/forms/d/e/1FAIpQLScQr9B23e6CuPFflnEQDi7Rj8APVpUps4qmR2NuUYkPViABtw/formResponse";
+  const ENTRY_NAME = "entry.000000000";   // 名前
+  const ENTRY_DEPT = "entry.000000000";   // 所属
+  const ENTRY_JOB  = "entry.000000000";   // 職種
+  // 章を記録したい場合はフォーム側に項目を用意して、IDを設定して送る（任意）
+  // const ENTRY_CHAPTER = "entry.xxxxxx";
+
+  function sendToGoogleForm({ name, dept, job /*, chapter*/ }) {
+    try {
+      const fd = new FormData();
+      fd.append(ENTRY_NAME, name || "");
+      fd.append(ENTRY_DEPT, dept || "");
+      fd.append(ENTRY_JOB,  job || "");
+      // if (ENTRY_CHAPTER) fd.append(ENTRY_CHAPTER, chapter || "2");
+      fetch(GOOGLE_FORM_ACTION, { method: "POST", body: fd, mode: "no-cors" })
+        .then(() => { console.log("✅ Googleフォームに送信しました"); })
+        .catch(err => { console.warn("⚠️ 送信エラー（ネットワーク）:", err); });
+    } catch (e) {
+      console.warn("⚠️ 送信エラー（例外）:", e);
+    }
+  }
+
+  // ===== DOM =====
+  const nameEl  = document.getElementById('name');
+  const groupEl = document.getElementById('group');
+  const jobEl   = document.getElementById('job');
+
+  const screenIntro = document.getElementById('screen-intro');
+  const screenPre   = document.getElementById('screen-pre');
+  const screenDiag  = document.getElementById('screen-diag');
+  const screenDiagResult = document.getElementById('screen-diag-result');
+  const screenQuiz  = document.getElementById('screen-quiz');
+  const screenEnding= document.getElementById('screen-ending');
+  const preTitle = document.getElementById('pre-title');
+  const stampEl = document.getElementById('stamp');
+
+  const diagQEl = document.getElementById('diag-q');
+  const diagChoicesEl = document.getElementById('diag-choices');
+  const diagProgEl = document.getElementById('diag-progress');
+
+  const storyEl = document.getElementById('story');
+  const qTitleEl = document.getElementById('q-title');
+  const choicesEl = document.getElementById('choices');
+  const judgeEl = document.getElementById('judge');
+  const explainEl = document.getElementById('explain');
+  const nextArea = document.getElementById('next-area');
+  const nextBtn  = document.getElementById('next-btn');
+  const endingText = document.getElementById('ending-text');
+  const quizImgEl = document.getElementById('quiz-img');
+  const confettiEl = document.getElementById('confetti');
+  const sparklesEl = document.getElementById('sparkles');
+
+  const fortuneLinesEl = document.getElementById('fortune-lines');
+  const finishBtn = document.getElementById('finish-btn');
+  const finishMessage = document.getElementById('finish-message');
+
+  // ===== Sound =====
+  const bgm = document.getElementById('bgm');
+  const seClick = document.getElementById('seClick');
+  const seCorrect = document.getElementById('seCorrect');
+  const seClear = document.getElementById('seClear');
+  let bgmStarted = false;
+
+  function playClick(){ try{ seClick.currentTime = 0; seClick.play(); }catch{} }
+  function playCorrect(){ try{ seCorrect.currentTime = 0; seCorrect.play(); }catch{} }
+  function ensureBGM(){ if(!bgmStarted){ bgmStarted = true; try{ bgm.volume = 0.8; bgm.play(); }catch{} } }
+  function stopAllSounds(){
+    try{ bgm.pause(); bgm.currentTime = 0; }catch{}
+    try{ seClick.pause(); seClick.currentTime = 0; }catch{}
+    try{ seCorrect.pause(); seCorrect.currentTime = 0; }catch{}
+    try{ seClear.pause(); seClear.currentTime = 0; }catch{}
+    bgmStarted = false;
+  }
+
+  // すべてのボタンでクリック音（選択肢は除外）
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    if (btn.classList.contains('choice-btn')) return;
+    playClick();
+  }, true);
+
+  // 画面切替
+  function hideAll(){ [screenIntro,screenPre,screenDiag,screenDiagResult,screenQuiz,screenEnding].forEach(el=>el.style.display='none'); }
+  function show(el){ hideAll(); el.style.display='block'; window.scrollTo({top:0, behavior:'smooth'}); }
+  show(screenIntro);
+
+  // Intro -> Pre（Googleフォーム送信）
+  document.getElementById('go-pre').addEventListener('click', ()=>{
+    if(!nameEl.value.trim()){ nameEl.focus(); nameEl.style.borderColor='#ff8dc7'; return; }
+    nameEl.style.borderColor='#ffdff0';
+    preTitle.textContent = `第2章へようこそ、${nameEl.value}さん｜血液型占い × TMC`;
+    show(screenPre);
+
+    sendToGoogleForm({
+      name: nameEl.value,
+      dept: groupEl.value,
+      job:  jobEl.value,
+      // chapter: "2"
+    });
+  });
+
+  // Pre -> Diagnosis
+  document.getElementById('begin-diag').addEventListener('click', ()=>{
+    ensureBGM();
+    diagIndex = 0; diagCounts = {A:0,B:0,O:0,AB:0}; lastPick = null;
+    renderDiag(); show(screenDiag);
+  });
+
+  // ===== 診断データ（3問→4タイプ） =====
+  const diagData = [
+    { q:"質問1｜休日の過ごし方は？",
+      choices:[
+        {label:"計画して家事や記録を片付ける", type:"A"},
+        {label:"新しい店や情報を探して外へ", type:"B"},
+        {label:"みんなと集まってワイワイ", type:"O"},
+        {label:"静かに本や創作で没頭", type:"AB"}
+      ]},
+    { q:"質問2｜チームで困った時に最初にすることは？",
+      choices:[
+        {label:"状況を分解してTODO化", type:"A"},
+        {label:"詳しい人にあたって情報収集", type:"B"},
+        {label:"全体の士気と役割を整える", type:"O"},
+        {label:"俯瞰し直感で仮説→検証を回す", type:"AB"}
+      ]},
+    { q:"質問3｜あなたに近い言葉は？",
+      choices:[
+        {label:"丁寧・正確・堅実", type:"A"},
+        {label:"自由・機動力・突破", type:"B"},
+        {label:"包容・調整・牽引", type:"O"},
+        {label:"二面性・柔軟・洞察", type:"AB"}
+      ]}
+  ];
+  let diagIndex=0, diagCounts={A:0,B:0,O:0,AB:0}, lastPick=null;
+
+  function renderDiag(){
+    const d = diagData[diagIndex];
+    diagQEl.textContent = d.q;
+    diagChoicesEl.innerHTML = "";
+    d.choices.forEach(ch=>{
+      const b = document.createElement('button');
+      b.className = 'choice-btn';
+      b.textContent = ch.label;
+      b.onclick = ()=>{
+        diagCounts[ch.type]++; lastPick = ch.type;
+        if(++diagIndex < diagData.length) renderDiag(); else showTypeResult();
+      };
+      diagChoicesEl.appendChild(b);
+    });
+    diagProgEl.textContent = `(${diagIndex+1} / ${diagData.length})`;
+  }
+
+  // 占い台詞を1行ずつ表示
+  function renderFortune(lines){
+    fortuneLinesEl.innerHTML = "";
+    let i = 0;
+    function next(){
+      if(i >= lines.length) return;
+      const div = document.createElement('div');
+      div.className = 'fortune-line';
+      div.textContent = lines[i++];
+      fortuneLinesEl.appendChild(div);
+      setTimeout(next, 900);
+    }
+    next();
+  }
+
+  function showTypeResult(){
+    // 最頻タイプ。タイは最後の選択を優先
+    const counts = diagCounts;
+    const order = ["A","B","O","AB"];
+    let max = -1, tied=[];
+    order.forEach(k=>{
+      if(counts[k] > max){ max = counts[k]; tied=[k]; }
+      else if(counts[k] === max){ tied.push(k); }
+    });
+    const main = tied.includes(lastPick) ? lastPick : tied[0];
+
+    const types = {
+      A: {
+        name: "A型｜几帳面ロジシスト",
+        copy: "段取りと記録でチームに安定感をもたらす。",
+        lines: [
+          "ふむ……秩序のカードが微笑んでいる。",
+          "あなたの武器は“準備力”。",
+          "TMCでは手順書・記録・エビデンス確認で活きる！"
+        ],
+        tips: [
+          "チェックリスト共有で抜け漏れ防止",
+          "採点観点を冒頭に合意して迷いを減らす"
+        ]
+      },
+      B: {
+        name: "B型｜自由発想ハッカー",
+        copy: "固定観念を壊し、新ルートを開拓する。",
+        lines: [
+          "風のカードが踊っている。",
+          "あなたの武器は“機動力”。",
+          "TMCでは情報収集と現場判断で道を切り拓け！"
+        ],
+        tips: [
+          "一次情報を素早く取りにいく役割で先手",
+          "独走せず、合図と言語化を忘れずに"
+        ]
+      },
+      O: {
+        name: "O型｜包容力キャプテン",
+        copy: "士気と連携を整えて総合力を最大化。",
+        lines: [
+          "太陽のカードが温かく光る。",
+          "あなたの武器は“全体最適”。",
+          "TMCでは役割分担と声かけで質を底上げだ！"
+        ],
+        tips: [
+          "詰まりを察知してリリーフ配置",
+          "最終確認（安全・倫理・説明）担当も◎"
+        ]
+      },
+      AB: {
+        name: "AB型｜二刀流ストラテジスト",
+        copy: "直感×論理で局面に応じた最善手を選ぶ。",
+        lines: [
+          "月と剣のカードが交差する。",
+          "あなたの武器は“ハイブリッド思考”。",
+          "TMCでは仮説⇄検証の回転で一歩先を読む！"
+        ],
+        tips: [
+          "曖昧さが残る時は“安全側に倒す”合図を",
+          "選択肢を2〜3に絞って合意形成を早める"
+        ]
+      }
+    };
+
+    const t = types[main];
+    document.getElementById('type-title').textContent = t.name;
+    document.getElementById('type-copy').textContent  = t.copy;
+
+    // tipsをリストに表示
+    const ul = document.getElementById('type-desc');
+    ul.innerHTML = "";
+    t.tips.forEach(txt=>{
+      const li=document.createElement('li'); li.textContent=txt; ul.appendChild(li);
+    });
+
+    show(screenDiagResult);
+    setTimeout(() => renderFortune(t.lines), 80);
+  }
+
+  // ===== 本編（TMC 3問） =====
+  const quiz = [
+    {
+      story: "🔎 謎1：TMCの真価とは？<br>TMC（とうせいメディカルカップ）は院内の“学び”イベント。では、その主な狙いは？",
+      title: "最も適切なものを選ぼう。",
+      image: "nazo4.png",
+      choices: [
+        {label:"部署ごとの勝敗で予算配分を決める", correct:false},
+        {label:"多職種が協力して“連携力・対応力”を高める学習イベント", correct:true},
+        {label:"個人の技能だけを競うコンテスト", correct:false},
+        {label:"病院外PRが第一目的の広報イベント", correct:false}
+      ],
+      explain: [
+        "TMCは“チームでの学び”が主軸。",
+        "多職種連携・安全意識・説明のわかりやすさなどを磨く。"
+      ]
+    },
+    {
+      story: "🧩 謎2：最適チームとは？<br>実地の現場に近い連携を鍛えるには、どんなチーム編成が望ましい？",
+      title: "正しいものを選ぼう。",
+      image: "nazo5.png",
+      choices: [
+        {label:"同一職種のみで固める", correct:false},
+        {label:"看護・医師・リハ・薬剤・事務など多職種が混在", correct:true},
+        {label:"経験年数の近い人だけで組む", correct:false},
+        {label:"資格の多い人だけで構成する", correct:false}
+      ],
+      explain: [
+        "多様性が意思決定の質を高める。",
+        "情報の多角化＆相互補完が実地に近い連携を生む。"
+      ]
+    },
+    {
+      story: "🛡️ 謎3：迷った時の優先順位<br>TMC当日、困難な課題に直面。何を最優先にすべき？",
+      title: "最も適切な対応を選ぼう。",
+      image: "nazo6.png",
+      choices: [
+        {label:"正解を早く出すため、まず声の大きい人に任せる", correct:false},
+        {label:"安全・倫理・説明の妥当性を確認し、必要ならヘルプ要請", correct:true},
+        {label:"一度決めた役割を崩さず完遂する", correct:false},
+        {label:"採点基準と無関係でも“面白さ”を優先", correct:false}
+      ],
+      explain: [
+        "安全第一。迷ったら安全側に倒すのが鉄則。",
+        "必要時はヘルプ・上長連絡・記録を適切に。"
+      ]
+    }
+  ];
+  let quizIndex = 0;
+  const quizImages = ["nazo4.png", "nazo5.png", "nazo6.png"];
+
+  function renderQuiz(){
+    const q = quiz[quizIndex];
+    storyEl.innerHTML = q.story;
+    quizImgEl.src = quizImages[quizIndex];
+    quizImgEl.alt = `第${quizIndex+1}の謎`;
+
+    qTitleEl.textContent = q.title;
+    choicesEl.innerHTML = ""; judgeEl.textContent = "";
+    explainEl.style.display = "none"; explainEl.innerHTML = "";
+    nextArea.style.display = "none";
+
+    q.choices.forEach(c=>{
+      const b = document.createElement('button');
+      b.className = 'choice-btn';
+      b.textContent = c.label;
+      b.onclick = ()=>judge(c.correct);
+      choicesEl.appendChild(b);
+    });
+  }
+
+  function showStamp(){ stampEl.style.display='flex'; setTimeout(()=>{ stampEl.style.display='none'); }, 700); }
+</script>
+
+<script>
+  // 一発正解方式（不正解は再挑戦OK／正解でピンポン＆スタンプ）
+  function judge(isCorrect){
+    const judgeEl = document.getElementById('judge');
+    const explainEl = document.getElementById('explain');
+    const nextArea = document.getElementById('next-area');
+
+    if(isCorrect){
+      judgeEl.textContent = "正解！";
+      judgeEl.className = "result ok";
+
+      try{ seClick.pause(); seClick.currentTime = 0; }catch{}
+      try{
+        seCorrect.currentTime = 0;
+        setTimeout(()=>{ seCorrect.play().catch(()=>{}); }, 30);
+      }catch{}
+
+      // スタンプ
+      const stampEl = document.getElementById('stamp');
+      stampEl.style.display='flex';
+      setTimeout(()=>{ stampEl.style.display='none'; }, 700);
+
+      const q = quiz[quizIndex];
+      explainEl.innerHTML = "<strong>解説</strong><ul style='margin:6px 0 0; padding-left:18px;'>" +
+        q.explain.map(t=>`<li>${t}</li>`).join("") + "</ul>";
+      explainEl.style.display = "block";
+      nextArea.style.display = "block";
+
+    }else{
+      judgeEl.textContent = "残念！もう一度選んでみよう。";
+      judgeEl.className = "result ng";
+    }
+  }
+
+  // 紙吹雪＆キラキラ
+  function launchConfetti(){
+    const confettiEl = document.getElementById('confetti');
+    confettiEl.innerHTML = "";
+    const colors = ["#ff7ac6","#ffd166","#7bdff2","#c3f0ca","#b5b0ff"];
+    for(let i=0;i<40;i++){
+      const s = document.createElement('span');
+      const size = 8 + Math.random()*10;
+      s.style.width = `${size}px`;
+      s.style.height = `${size*1.6}px`;
+      s.style.left = `${Math.random()*100}%`;
+      s.style.background = colors[Math.floor(Math.random()*colors.length)];
+      s.style.animationDelay = `${Math.random()*0.8}s`;
+      s.style.opacity = 0.8 + Math.random()*0.2;
+      confettiEl.appendChild(s);
+    }
+  }
+  function launchSparkles(){
+    const sparklesEl = document.getElementById('sparkles');
+    sparklesEl.innerHTML = "";
+    for(let i=0;i<18;i++){
+      const sp = document.createElement('div');
+      sp.className = 'spark';
+      sp.style.left = `${Math.random()*100}%`;
+      sp.style.top  = `${Math.random()*100}%`;
+      sp.style.animationDelay = `${Math.random()*1.2}s`;
+      sparklesEl.appendChild(sp);
+    }
+  }
+
+  // 導線：診断→本編
+  document.getElementById('to-quiz').addEventListener('click', ()=>{
+    quizIndex = 0;
+    renderQuiz();
+    show(screenQuiz);
+  });
+
+  // 次へ（クイズ遷移）
+  document.getElementById('next-btn').addEventListener('click', ()=>{
+    if(++quizIndex < quiz.length){
+      renderQuiz();
+      window.scrollTo({top:0, behavior:'smooth'});
+    }else{
+      const nm = (document.getElementById('name').value || "名探偵").trim();
+      document.getElementById('ending-text').innerHTML =
+        `<strong>${nm}さん、ありがとう！</strong><br>血液型占いの強みを活かして、TMCでもきっと活躍できるはず。`;
+      show(screenEnding);
+      launchConfetti();
+      launchSparkles();
+      try{ seClear.currentTime = 0; seClear.play(); }catch{}
+      window.scrollTo({top:0, behavior:'smooth'});
+    }
+  });
+
+  // 終了ボタン：音を止めてお礼表示
+  document.getElementById('finish-btn').addEventListener('click', ()=>{
+    stopAllSounds();
+    const msg = document.getElementById('finish-message');
+    msg.style.display = 'block';
+    const btn = document.getElementById('finish-btn');
+    btn.disabled = true;
+    btn.textContent = '終了しました';
+  });
+
+  // BGM開始はユーザー操作後に
+  document.getElementById('begin-diag').addEventListener('click', ()=>{
+    if(!bgmStarted){
+      bgmStarted = true;
+      try{ bgm.volume = 0.8; bgm.play(); }catch{}
+    }
+  });
+</script>
+</body>
+</html>
