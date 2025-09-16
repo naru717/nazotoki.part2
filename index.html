@@ -270,20 +270,16 @@
      Googleフォーム 送信設定
      ========================= */
   const GOOGLE_FORM_ACTION =
-    "https://docs.google.com/forms/d/e/1FAIpQLScQr9B23e6CuPFflnEQDi7Rj8APVpUps4qmR2NuUYkPViABtw/formResponse";
-  const ENTRY_NAME = "entry.000000000";   // 名前
-  const ENTRY_DEPT = "entry.000000000";   // 所属
-  const ENTRY_JOB  = "entry.000000000";   // 職種
-  // 章を記録したい場合はフォーム側に項目を用意して、IDを設定して送る（任意）
-  // const ENTRY_CHAPTER = "entry.xxxxxx";
+  const ENTRY_NAME = "entry.00000000";   // 名前
+  const ENTRY_DEPT = "entry.00000000";   // 所属
+  const ENTRY_JOB  = "entry.00000000";   // 職種
 
-  function sendToGoogleForm({ name, dept, job /*, chapter*/ }) {
+  function sendToGoogleForm({ name, dept, job }) {
     try {
       const fd = new FormData();
       fd.append(ENTRY_NAME, name || "");
       fd.append(ENTRY_DEPT, dept || "");
       fd.append(ENTRY_JOB,  job || "");
-      // if (ENTRY_CHAPTER) fd.append(ENTRY_CHAPTER, chapter || "2");
       fetch(GOOGLE_FORM_ACTION, { method: "POST", body: fd, mode: "no-cors" })
         .then(() => { console.log("✅ Googleフォームに送信しました"); })
         .catch(err => { console.warn("⚠️ 送信エラー（ネットワーク）:", err); });
@@ -367,8 +363,7 @@
     sendToGoogleForm({
       name: nameEl.value,
       dept: groupEl.value,
-      job:  jobEl.value,
-      // chapter: "2"
+      job:  jobEl.value
     });
   });
 
@@ -589,20 +584,13 @@
     });
   }
 
- function showStamp(){
-  stampEl.style.display = 'flex';
-  setTimeout(() => { stampEl.style.display = 'none'; }, 700);
-}
+  function showStamp(){
+    stampEl.style.display = 'flex';
+    setTimeout(() => { stampEl.style.display = 'none'; }, 700);
+  }
 
-</script>
-
-<script>
   // 一発正解方式（不正解は再挑戦OK／正解でピンポン＆スタンプ）
   function judge(isCorrect){
-    const judgeEl = document.getElementById('judge');
-    const explainEl = document.getElementById('explain');
-    const nextArea = document.getElementById('next-area');
-
     if(isCorrect){
       judgeEl.textContent = "正解！";
       judgeEl.className = "result ok";
@@ -613,10 +601,7 @@
         setTimeout(()=>{ seCorrect.play().catch(()=>{}); }, 30);
       }catch{}
 
-      // スタンプ
-      const stampEl = document.getElementById('stamp');
-      stampEl.style.display='flex';
-      setTimeout(()=>{ stampEl.style.display='none'; }, 700);
+      showStamp();
 
       const q = quiz[quizIndex];
       explainEl.innerHTML = "<strong>解説</strong><ul style='margin:6px 0 0; padding-left:18px;'>" +
@@ -632,7 +617,6 @@
 
   // 紙吹雪＆キラキラ
   function launchConfetti(){
-    const confettiEl = document.getElementById('confetti');
     confettiEl.innerHTML = "";
     const colors = ["#ff7ac6","#ffd166","#7bdff2","#c3f0ca","#b5b0ff"];
     for(let i=0;i<40;i++){
@@ -648,7 +632,6 @@
     }
   }
   function launchSparkles(){
-    const sparklesEl = document.getElementById('sparkles');
     sparklesEl.innerHTML = "";
     for(let i=0;i<18;i++){
       const sp = document.createElement('div');
@@ -668,14 +651,13 @@
   });
 
   // 次へ（クイズ遷移）
-  document.getElementById('next-btn').addEventListener('click', ()=>{
+  nextBtn.addEventListener('click', ()=>{
     if(++quizIndex < quiz.length){
       renderQuiz();
       window.scrollTo({top:0, behavior:'smooth'});
     }else{
-      const nm = (document.getElementById('name').value || "名探偵").trim();
-      document.getElementById('ending-text').innerHTML =
-        `<strong>${nm}さん、ありがとう！</strong><br>血液型占いの強みを活かして、TMCでもきっと活躍できるはず。`;
+      const nm = nameEl.value.trim() || "名探偵";
+      endingText.innerHTML = `<strong>${nm}さん、ありがとう！</strong><br>血液型占いの強みを活かして、TMCでもきっと活躍できるはず。`;
       show(screenEnding);
       launchConfetti();
       launchSparkles();
@@ -685,13 +667,11 @@
   });
 
   // 終了ボタン：音を止めてお礼表示
-  document.getElementById('finish-btn').addEventListener('click', ()=>{
+  finishBtn.addEventListener('click', ()=>{
     stopAllSounds();
-    const msg = document.getElementById('finish-message');
-    msg.style.display = 'block';
-    const btn = document.getElementById('finish-btn');
-    btn.disabled = true;
-    btn.textContent = '終了しました';
+    finishMessage.style.display = 'block';
+    finishBtn.disabled = true;
+    finishBtn.textContent = '終了しました';
   });
 
   // BGM開始はユーザー操作後に
