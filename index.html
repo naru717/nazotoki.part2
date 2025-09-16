@@ -41,6 +41,7 @@
     .choice-btn{font-size:15px; padding:14px}
     .btn{width:100%}
   }
+
   /* ボタン */
   .btn{
     display:inline-block; padding:14px 18px; border-radius:16px; border:none; cursor:pointer; font-size:16px;
@@ -174,7 +175,8 @@
       </div>
 
       <div style="margin-top:16px;">
-        <button class="btn" id="go-pre">次へ</button>
+        <!-- Safari対策：onclick直付け -->
+        <button class="btn" id="go-pre" onclick="goPre()">次へ</button>
       </div>
     </section>
 
@@ -186,7 +188,7 @@
         直感で選んだ答えが、あなたの<strong>推理スタイル</strong>を映し出す…！<br/>
         とせい占い、はじまるよ。
       </div>
-      <button class="btn alt" id="begin-diag">診断をはじめる</button>
+      <button class="btn alt" id="begin-diag" onclick="beginDiag()">診断をはじめる</button>
     </section>
 
     <!-- 診断（3問→4タイプ） -->
@@ -211,7 +213,7 @@
         あなたの探偵タイプがわかりました。<br/>
         その個性を活かして<strong>とうせいの謎 第2章</strong>に挑もう！
       </div>
-      <button class="btn" id="to-quiz" style="margin-top:14px;">第1問へ進む</button>
+      <button class="btn" id="to-quiz" onclick="toQuiz()" style="margin-top:14px;">第1問へ進む</button>
     </section>
 
     <!-- 本編Q1〜Q3（TMC） -->
@@ -225,7 +227,7 @@
       <div id="judge" class="result"></div>
       <div id="explain" class="explain" style="display:none;"></div>
       <div id="next-area" style="display:none; margin-top:12px;">
-        <button id="next-btn" class="btn">次へ</button>
+        <button id="next-btn" class="btn" onclick="goNext()">次へ</button>
       </div>
     </section>
 
@@ -267,24 +269,27 @@
 
 <script>
   /* =========================
-     Googleフォーム 送信設定
+     Googleフォーム 設定（未定プレースホルダ）
+     あとで実値に差し替えてください
      ========================= */
-  const GOOGLE_FORM_ACTION =
-  const ENTRY_NAME = "entry.00000000";   // 名前
-  const ENTRY_DEPT = "entry.00000000";   // 所属
-  const ENTRY_JOB  = "entry.00000000";   // 職種
+  const GOOGLE_FORM_ACTION = ""; // TODO: フォームの formResponse URL を入れる
+  const ENTRY_NAME = "";         // TODO: 名前の entry.xxxxx を入れる
+  const ENTRY_DEPT = "";         // TODO: 所属の entry.xxxxx を入れる
+  const ENTRY_JOB  = "";         // TODO: 職種の entry.xxxxx を入れる
 
   function sendToGoogleForm({ name, dept, job }) {
     try {
+      // 未設定なら何もしない（画面進行は止めない）
+      if (!GOOGLE_FORM_ACTION || !ENTRY_NAME || !ENTRY_DEPT || !ENTRY_JOB) return;
       const fd = new FormData();
       fd.append(ENTRY_NAME, name || "");
       fd.append(ENTRY_DEPT, dept || "");
-      fd.append(ENTRY_JOB,  job || "");
+      fd.append(ENTRY_JOB,  job  || "");
       fetch(GOOGLE_FORM_ACTION, { method: "POST", body: fd, mode: "no-cors" })
-        .then(() => { console.log("✅ Googleフォームに送信しました"); })
-        .catch(err => { console.warn("⚠️ 送信エラー（ネットワーク）:", err); });
+        .then(function(){ console.log("✅ Googleフォームに送信しました"); })
+        .catch(function(e){ console.warn("⚠️ 送信エラー:", e); });
     } catch (e) {
-      console.warn("⚠️ 送信エラー（例外）:", e);
+      console.warn("⚠️ 送信例外:", e);
     }
   }
 
@@ -299,6 +304,7 @@
   const screenDiagResult = document.getElementById('screen-diag-result');
   const screenQuiz  = document.getElementById('screen-quiz');
   const screenEnding= document.getElementById('screen-ending');
+
   const preTitle = document.getElementById('pre-title');
   const stampEl = document.getElementById('stamp');
 
@@ -329,19 +335,24 @@
   const seClear = document.getElementById('seClear');
   let bgmStarted = false;
 
-  function playClick(){ try{ seClick.currentTime = 0; seClick.play(); }catch{} }
-  function playCorrect(){ try{ seCorrect.currentTime = 0; seCorrect.play(); }catch{} }
-  function ensureBGM(){ if(!bgmStarted){ bgmStarted = true; try{ bgm.volume = 0.8; bgm.play(); }catch{} } }
+  function playClick(){ try{ seClick.currentTime = 0; seClick.play(); }catch(e){} }
+  function playCorrect(){ try{ seCorrect.currentTime = 0; seCorrect.play(); }catch(e){} }
+  function ensureBGM(){
+    if(!bgmStarted){
+      bgmStarted = true;
+      try{ bgm.volume = 0.8; bgm.play(); }catch(e){}
+    }
+  }
   function stopAllSounds(){
-    try{ bgm.pause(); bgm.currentTime = 0; }catch{}
-    try{ seClick.pause(); seClick.currentTime = 0; }catch{}
-    try{ seCorrect.pause(); seCorrect.currentTime = 0; }catch{}
-    try{ seClear.pause(); seClear.currentTime = 0; }catch{}
+    try{ bgm.pause(); bgm.currentTime = 0; }catch(e){}
+    try{ seClick.pause(); seClick.currentTime = 0; }catch(e){}
+    try{ seCorrect.pause(); seCorrect.currentTime = 0; }catch(e){}
+    try{ seClear.pause(); seClear.currentTime = 0; }catch(e){}
     bgmStarted = false;
   }
 
   // すべてのボタンでクリック音（選択肢は除外）
-  document.addEventListener('click', (e) => {
+  document.addEventListener('click', function(e){
     const btn = e.target.closest('button');
     if (!btn) return;
     if (btn.classList.contains('choice-btn')) return;
@@ -349,30 +360,47 @@
   }, true);
 
   // 画面切替
-  function hideAll(){ [screenIntro,screenPre,screenDiag,screenDiagResult,screenQuiz,screenEnding].forEach(el=>el.style.display='none'); }
+  function hideAll(){ [screenIntro,screenPre,screenDiag,screenDiagResult,screenQuiz,screenEnding].forEach(function(el){ el.style.display='none'; }); }
   function show(el){ hideAll(); el.style.display='block'; window.scrollTo({top:0, behavior:'smooth'}); }
   show(screenIntro);
 
-  // Intro -> Pre（Googleフォーム送信）
-  document.getElementById('go-pre').addEventListener('click', ()=>{
+  // ====== Safari対策：onclick直付け用の公開関数 ======
+  window.goPre = function(){
     if(!nameEl.value.trim()){ nameEl.focus(); nameEl.style.borderColor='#ff8dc7'; return; }
     nameEl.style.borderColor='#ffdff0';
-    preTitle.textContent = `第2章へようこそ、${nameEl.value}さん｜血液型占い × TMC`;
+    preTitle.textContent = "第2章へようこそ、" + nameEl.value + "さん｜血液型占い × TMC";
     show(screenPre);
+    // 送信（未設定なら何もしない）
+    sendToGoogleForm({ name: nameEl.value, dept: groupEl.value, job: jobEl.value });
+  };
 
-    sendToGoogleForm({
-      name: nameEl.value,
-      dept: groupEl.value,
-      job:  jobEl.value
-    });
-  });
-
-  // Pre -> Diagnosis
-  document.getElementById('begin-diag').addEventListener('click', ()=>{
+  window.beginDiag = function(){
     ensureBGM();
     diagIndex = 0; diagCounts = {A:0,B:0,O:0,AB:0}; lastPick = null;
     renderDiag(); show(screenDiag);
-  });
+  };
+
+  window.toQuiz = function(){
+    quizIndex = 0;
+    renderQuiz();
+    show(screenQuiz);
+  };
+
+  window.goNext = function(){
+    quizIndex++;
+    if(quizIndex < quiz.length){
+      renderQuiz();
+      window.scrollTo({top:0, behavior:'smooth'});
+    }else{
+      const nm = (nameEl.value || "名探偵").trim();
+      endingText.innerHTML = "<strong>"+ nm +"さん、ありがとう！</strong><br>血液型占いの強みを活かして、TMCでもきっと活躍できるはず。";
+      show(screenEnding);
+      launchConfetti();
+      launchSparkles();
+      try{ seClear.currentTime = 0; seClear.play(); }catch(e){}
+      window.scrollTo({top:0, behavior:'smooth'});
+    }
+  };
 
   // ===== 診断データ（3問→4タイプ） =====
   const diagData = [
@@ -404,32 +432,31 @@
     const d = diagData[diagIndex];
     diagQEl.textContent = d.q;
     diagChoicesEl.innerHTML = "";
-    d.choices.forEach(ch=>{
+    d.choices.forEach(function(ch){
       const b = document.createElement('button');
       b.className = 'choice-btn';
       b.textContent = ch.label;
-      b.onclick = ()=>{
+      b.onclick = function(){
         diagCounts[ch.type]++; lastPick = ch.type;
         if(++diagIndex < diagData.length) renderDiag(); else showTypeResult();
       };
       diagChoicesEl.appendChild(b);
     });
-    diagProgEl.textContent = `(${diagIndex+1} / ${diagData.length})`;
+    diagProgEl.textContent = "(" + (diagIndex+1) + " / " + diagData.length + ")";
   }
 
   // 占い台詞を1行ずつ表示
   function renderFortune(lines){
     fortuneLinesEl.innerHTML = "";
     let i = 0;
-    function next(){
+    (function next(){
       if(i >= lines.length) return;
       const div = document.createElement('div');
       div.className = 'fortune-line';
       div.textContent = lines[i++];
       fortuneLinesEl.appendChild(div);
       setTimeout(next, 900);
-    }
-    next();
+    })();
   }
 
   function showTypeResult(){
@@ -437,11 +464,11 @@
     const counts = diagCounts;
     const order = ["A","B","O","AB"];
     let max = -1, tied=[];
-    order.forEach(k=>{
+    order.forEach(function(k){
       if(counts[k] > max){ max = counts[k]; tied=[k]; }
       else if(counts[k] === max){ tied.push(k); }
     });
-    const main = tied.includes(lastPick) ? lastPick : tied[0];
+    const main = tied.indexOf(lastPick) !== -1 ? lastPick : tied[0];
 
     const types = {
       A: {
@@ -505,12 +532,12 @@
     // tipsをリストに表示
     const ul = document.getElementById('type-desc');
     ul.innerHTML = "";
-    t.tips.forEach(txt=>{
+    t.tips.forEach(function(txt){
       const li=document.createElement('li'); li.textContent=txt; ul.appendChild(li);
     });
 
     show(screenDiagResult);
-    setTimeout(() => renderFortune(t.lines), 80);
+    setTimeout(function(){ renderFortune(t.lines); }, 80);
   }
 
   // ===== 本編（TMC 3問） =====
@@ -518,7 +545,6 @@
     {
       story: "🔎 謎1：TMCの真価とは？<br>TMC（とうせいメディカルカップ）は院内の“学び”イベント。では、その主な狙いは？",
       title: "最も適切なものを選ぼう。",
-      image: "nazo4.png",
       choices: [
         {label:"部署ごとの勝敗で予算配分を決める", correct:false},
         {label:"多職種が協力して“連携力・対応力”を高める学習イベント", correct:true},
@@ -533,7 +559,6 @@
     {
       story: "🧩 謎2：最適チームとは？<br>実地の現場に近い連携を鍛えるには、どんなチーム編成が望ましい？",
       title: "正しいものを選ぼう。",
-      image: "nazo5.png",
       choices: [
         {label:"同一職種のみで固める", correct:false},
         {label:"看護・医師・リハ・薬剤・事務など多職種が混在", correct:true},
@@ -548,7 +573,6 @@
     {
       story: "🛡️ 謎3：迷った時の優先順位<br>TMC当日、困難な課題に直面。何を最優先にすべき？",
       title: "最も適切な対応を選ぼう。",
-      image: "nazo6.png",
       choices: [
         {label:"正解を早く出すため、まず声の大きい人に任せる", correct:false},
         {label:"安全・倫理・説明の妥当性を確認し、必要ならヘルプ要請", correct:true},
@@ -562,50 +586,50 @@
     }
   ];
   let quizIndex = 0;
-  const quizImages = ["nazo4.png", "nazo5.png", "nazo6.png"];
+  const quizImages = ["nazo4.png","nazo5.png","nazo6.png"]; // 任意画像（無ければ空でOK）
 
   function renderQuiz(){
     const q = quiz[quizIndex];
     storyEl.innerHTML = q.story;
-    quizImgEl.src = quizImages[quizIndex];
-    quizImgEl.alt = `第${quizIndex+1}の謎`;
+    quizImgEl.src = quizImages[quizIndex] || "";
+    quizImgEl.alt = "第" + (quizIndex+1) + "の謎";
 
     qTitleEl.textContent = q.title;
     choicesEl.innerHTML = ""; judgeEl.textContent = "";
     explainEl.style.display = "none"; explainEl.innerHTML = "";
     nextArea.style.display = "none";
 
-    q.choices.forEach(c=>{
+    q.choices.forEach(function(c){
       const b = document.createElement('button');
       b.className = 'choice-btn';
       b.textContent = c.label;
-      b.onclick = ()=>judge(c.correct);
+      b.onclick = function(){ judge(c.correct); };
       choicesEl.appendChild(b);
     });
   }
 
   function showStamp(){
     stampEl.style.display = 'flex';
-    setTimeout(() => { stampEl.style.display = 'none'; }, 700);
+    setTimeout(function(){ stampEl.style.display = 'none'; }, 700);
   }
 
-  // 一発正解方式（不正解は再挑戦OK／正解でピンポン＆スタンプ）
+  // 一発正解方式（採点表示なし／正解でピンポン＆スタンプ）
   function judge(isCorrect){
     if(isCorrect){
       judgeEl.textContent = "正解！";
       judgeEl.className = "result ok";
 
-      try{ seClick.pause(); seClick.currentTime = 0; }catch{}
+      try{ seClick.pause(); seClick.currentTime = 0; }catch(e){}
       try{
         seCorrect.currentTime = 0;
-        setTimeout(()=>{ seCorrect.play().catch(()=>{}); }, 30);
-      }catch{}
+        setTimeout(function(){ try{ seCorrect.play(); }catch(e){} }, 30);
+      }catch(e){}
 
       showStamp();
 
       const q = quiz[quizIndex];
       explainEl.innerHTML = "<strong>解説</strong><ul style='margin:6px 0 0; padding-left:18px;'>" +
-        q.explain.map(t=>`<li>${t}</li>`).join("") + "</ul>";
+        q.explain.map(function(t){ return "<li>"+ t +"</li>"; }).join("") + "</ul>";
       explainEl.style.display = "block";
       nextArea.style.display = "block";
 
@@ -622,11 +646,11 @@
     for(let i=0;i<40;i++){
       const s = document.createElement('span');
       const size = 8 + Math.random()*10;
-      s.style.width = `${size}px`;
-      s.style.height = `${size*1.6}px`;
-      s.style.left = `${Math.random()*100}%`;
+      s.style.width = size + "px";
+      s.style.height = (size*1.6) + "px";
+      s.style.left = (Math.random()*100) + "%";
       s.style.background = colors[Math.floor(Math.random()*colors.length)];
-      s.style.animationDelay = `${Math.random()*0.8}s`;
+      s.style.animationDelay = (Math.random()*0.8) + "s";
       s.style.opacity = 0.8 + Math.random()*0.2;
       confettiEl.appendChild(s);
     }
@@ -636,38 +660,15 @@
     for(let i=0;i<18;i++){
       const sp = document.createElement('div');
       sp.className = 'spark';
-      sp.style.left = `${Math.random()*100}%`;
-      sp.style.top  = `${Math.random()*100}%`;
-      sp.style.animationDelay = `${Math.random()*1.2}s`;
+      sp.style.left = (Math.random()*100) + "%";
+      sp.style.top  = (Math.random()*100) + "%";
+      sp.style.animationDelay = (Math.random()*1.2) + "s";
       sparklesEl.appendChild(sp);
     }
   }
 
-  // 導線：診断→本編
-  document.getElementById('to-quiz').addEventListener('click', ()=>{
-    quizIndex = 0;
-    renderQuiz();
-    show(screenQuiz);
-  });
-
-  // 次へ（クイズ遷移）
-  nextBtn.addEventListener('click', ()=>{
-    if(++quizIndex < quiz.length){
-      renderQuiz();
-      window.scrollTo({top:0, behavior:'smooth'});
-    }else{
-      const nm = nameEl.value.trim() || "名探偵";
-      endingText.innerHTML = `<strong>${nm}さん、ありがとう！</strong><br>血液型占いの強みを活かして、TMCでもきっと活躍できるはず。`;
-      show(screenEnding);
-      launchConfetti();
-      launchSparkles();
-      try{ seClear.currentTime = 0; seClear.play(); }catch{}
-      window.scrollTo({top:0, behavior:'smooth'});
-    }
-  });
-
-  // 終了ボタン：音を止めてお礼表示
-  finishBtn.addEventListener('click', ()=>{
+  // 終了ボタン
+  finishBtn.addEventListener('click', function(){
     stopAllSounds();
     finishMessage.style.display = 'block';
     finishBtn.disabled = true;
@@ -675,10 +676,10 @@
   });
 
   // BGM開始はユーザー操作後に
-  document.getElementById('begin-diag').addEventListener('click', ()=>{
+  document.getElementById('begin-diag').addEventListener('click', function(){
     if(!bgmStarted){
       bgmStarted = true;
-      try{ bgm.volume = 0.8; bgm.play(); }catch{}
+      try{ bgm.volume = 0.8; bgm.play(); }catch(e){}
     }
   });
 </script>
