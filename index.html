@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>とうせいの謎｜第2章 血液型占い × TMC</title>
+<title>第２弾TMC（とうせいメディカルカップ）とは</title>
 <style>
   :root{
     --bg:#fff7fb; --card:#ffffff; --text:#2a2a2a; --muted:#6b7280;
@@ -53,7 +53,7 @@
 
   /* 入力フォーム（縦並び） */
   .form-vertical{display:flex; flex-direction:column; gap:12px;}
-  label{font-size:14px; color:var(--muted); margin-bottom:6px;}
+  label{font-size:14px; color:#6b7280; margin-bottom:6px;}
   input{
     width:100%; padding:14px 14px; font-size:16px; border-radius:14px; border:2px solid #ffdff0; background:#fff; outline:none;
   }
@@ -143,7 +143,7 @@
   <div class="wrap">
     <header>
       <img src="mame2.png" alt="とせいくん（第2章）" class="mascot" />
-      <h1>🎯 とうせいの謎｜第2章 血液型占い × TMC</h1>
+      <h1>第２弾TMC（とうせいメディカルカップ）とは</h1>
     </header>
 
     <!-- 入力画面 -->
@@ -152,8 +152,8 @@
         <img src="mame2.png" alt="とせいくん（第2章）" />
         <div class="speech">
           <strong>ぼくは とせいくん。</strong><br>
-          第2章は <strong>血液型占い風の導入</strong> から始まるよ。<br>
-          <strong>あなたのこと、教えて！</strong>
+          <strong>あなたの性格やタイプを教えて。</strong><br>
+          とせいくんが<strong>ズバリ血液型を当てよう！</strong>
         </div>
       </div>
 
@@ -184,9 +184,9 @@
     <section id="screen-pre" class="card fade" style="display:none;">
       <div id="pre-title" class="subtitle"></div>
       <div class="muted-box" style="margin:10px 0 14px;">
-        🔮 <strong>血液型占い風・探偵診断</strong><br/>
-        直感で選んだ答えが、あなたの<strong>推理スタイル</strong>を映し出す…！<br/>
-        とせい占い、はじまるよ。
+        🔮 <strong>血液型あて診断（全3問）</strong><br/>
+        直感で選ぶと、あなたの“タイプ”が見えてくる！<br/>
+        準備はいい？ では診断スタート。
       </div>
       <button class="btn alt" id="begin-diag" onclick="beginDiag()">診断をはじめる</button>
     </section>
@@ -210,8 +210,8 @@
 
       <ul id="type-desc" style="text-align:left; line-height:1.8;"></ul>
       <div class="muted-box" style="margin-top:12px;">
-        あなたの探偵タイプがわかりました。<br/>
-        その個性を活かして<strong>とうせいの謎 第2章</strong>に挑もう！
+        さあ、<strong>TMC（とうせいメディカルカップ）</strong>の世界へ！<br/>
+        このタイプを活かして謎解きに挑もう。
       </div>
       <button class="btn" id="to-quiz" onclick="toQuiz()" style="margin-top:14px;">第1問へ進む</button>
     </section>
@@ -261,7 +261,7 @@
     <img src="nazotoki2.png" alt="正解スタンプ" />
   </div>
 
-  <!-- サウンド（第2章向け） -->
+  <!-- サウンド -->
   <audio id="bgm" src="nazotoki2.mp3" preload="none" loop></audio>
   <audio id="seClick" src="pochi.mp3" preload="auto"></audio>
   <audio id="seCorrect" src="pinpon.mp3" preload="auto"></audio>
@@ -269,17 +269,16 @@
 
 <script>
   /* =========================
-     Googleフォーム 設定（未定プレースホルダ）
-     あとで実値に差し替えてください
+     Googleフォーム 設定（プレースホルダ）
+     後で実値に差し替えてください
      ========================= */
-  const GOOGLE_FORM_ACTION = ""; // TODO: フォームの formResponse URL を入れる
-  const ENTRY_NAME = "";         // TODO: 名前の entry.xxxxx を入れる
-  const ENTRY_DEPT = "";         // TODO: 所属の entry.xxxxx を入れる
-  const ENTRY_JOB  = "";         // TODO: 職種の entry.xxxxx を入れる
+  const GOOGLE_FORM_ACTION = ""; // TODO: formResponse のURL
+  const ENTRY_NAME = "";         // TODO: entry.xxxxx（名前）
+  const ENTRY_DEPT = "";         // TODO: entry.xxxxx（所属）
+  const ENTRY_JOB  = "";         // TODO: entry.xxxxx（職種）
 
   function sendToGoogleForm({ name, dept, job }) {
     try {
-      // 未設定なら何もしない（画面進行は止めない）
       if (!GOOGLE_FORM_ACTION || !ENTRY_NAME || !ENTRY_DEPT || !ENTRY_JOB) return;
       const fd = new FormData();
       fd.append(ENTRY_NAME, name || "");
@@ -288,9 +287,7 @@
       fetch(GOOGLE_FORM_ACTION, { method: "POST", body: fd, mode: "no-cors" })
         .then(function(){ console.log("✅ Googleフォームに送信しました"); })
         .catch(function(e){ console.warn("⚠️ 送信エラー:", e); });
-    } catch (e) {
-      console.warn("⚠️ 送信例外:", e);
-    }
+    } catch (e) { console.warn("⚠️ 送信例外:", e); }
   }
 
   // ===== DOM =====
@@ -368,9 +365,8 @@
   window.goPre = function(){
     if(!nameEl.value.trim()){ nameEl.focus(); nameEl.style.borderColor='#ff8dc7'; return; }
     nameEl.style.borderColor='#ffdff0';
-    preTitle.textContent = "第2章へようこそ、" + nameEl.value + "さん｜血液型占い × TMC";
+    preTitle.textContent = "第2弾『TMCとは？』へようこそ、" + nameEl.value + "さん。まずは血液型診断！";
     show(screenPre);
-    // 送信（未設定なら何もしない）
     sendToGoogleForm({ name: nameEl.value, dept: groupEl.value, job: jobEl.value });
   };
 
@@ -393,7 +389,7 @@
       window.scrollTo({top:0, behavior:'smooth'});
     }else{
       const nm = (nameEl.value || "名探偵").trim();
-      endingText.innerHTML = "<strong>"+ nm +"さん、ありがとう！</strong><br>血液型占いの強みを活かして、TMCでもきっと活躍できるはず。";
+      endingText.innerHTML = "<strong>"+ nm +"さん、ありがとう！</strong><br>タイプ診断もTMCの学びも、次に活かしていこう。";
       show(screenEnding);
       launchConfetti();
       launchSparkles();
@@ -402,28 +398,28 @@
     }
   };
 
-  // ===== 診断データ（3問→4タイプ） =====
+  // ===== 血液型あて診断（3問） =====
   const diagData = [
-    { q:"質問1｜休日の過ごし方は？",
+    { q:"質問1｜初対面の打ち合わせ、あなたはどう動く？",
       choices:[
-        {label:"計画して家事や記録を片付ける", type:"A"},
-        {label:"新しい店や情報を探して外へ", type:"B"},
-        {label:"みんなと集まってワイワイ", type:"O"},
-        {label:"静かに本や創作で没頭", type:"AB"}
+        {label:"事前に議題を整理し、議事メモの担当を買って出る", type:"A"},
+        {label:"まず場を和ませ、全員の発言を引き出す", type:"O"},
+        {label:"気になった点をスピーディーに提案・実行へ", type:"B"},
+        {label:"全体を俯瞰しつつ独自の視点で代替案も用意", type:"AB"}
       ]},
-    { q:"質問2｜チームで困った時に最初にすることは？",
+    { q:"質問2｜予定外のトラブル発生！最初の一手は？",
       choices:[
-        {label:"状況を分解してTODO化", type:"A"},
-        {label:"詳しい人にあたって情報収集", type:"B"},
-        {label:"全体の士気と役割を整える", type:"O"},
-        {label:"俯瞰し直感で仮説→検証を回す", type:"AB"}
+        {label:"事実確認→優先度を付けてタスク化", type:"A"},
+        {label:"関係者に声をかけ連携網を組む", type:"O"},
+        {label:"試せる解決策を小さく当てて反応を見る", type:"B"},
+        {label:"仮説を立ててパターンを比較、最適ルートを決める", type:"AB"}
       ]},
-    { q:"質問3｜あなたに近い言葉は？",
+    { q:"質問3｜自分を一言で表すなら？",
       choices:[
-        {label:"丁寧・正確・堅実", type:"A"},
-        {label:"自由・機動力・突破", type:"B"},
-        {label:"包容・調整・牽引", type:"O"},
-        {label:"二面性・柔軟・洞察", type:"AB"}
+        {label:"丁寧でまじめ、抜け漏れが少ない", type:"A"},
+        {label:"自由で行動的、切り込み隊長", type:"B"},
+        {label:"おおらかで面倒見がよい、調整役", type:"O"},
+        {label:"直感と論理の二刀流、柔軟", type:"AB"}
       ]}
   ];
   let diagIndex=0, diagCounts={A:0,B:0,O:0,AB:0}, lastPick=null;
@@ -442,10 +438,10 @@
       };
       diagChoicesEl.appendChild(b);
     });
-    diagProgEl.textContent = "(" + (diagIndex+1) + " / " + diagData.length + ")";
+    diagProgEl.textContent = "(" + (diagIndex+1) + " / " + d.choices.length + ")";
   }
 
-  // 占い台詞を1行ずつ表示
+  // 台詞を1行ずつ表示
   function renderFortune(lines){
     fortuneLinesEl.innerHTML = "";
     let i = 0;
@@ -461,75 +457,78 @@
 
   function showTypeResult(){
     // 最頻タイプ。タイは最後の選択を優先
-    const counts = diagCounts;
     const order = ["A","B","O","AB"];
     let max = -1, tied=[];
     order.forEach(function(k){
-      if(counts[k] > max){ max = counts[k]; tied=[k]; }
-      else if(counts[k] === max){ tied.push(k); }
+      const v = diagCounts[k];
+      if(v > max){ max = v; tied=[k]; }
+      else if(v === max){ tied.push(k); }
     });
     const main = tied.indexOf(lastPick) !== -1 ? lastPick : tied[0];
 
     const types = {
       A: {
-        name: "A型｜几帳面ロジシスト",
-        copy: "段取りと記録でチームに安定感をもたらす。",
+        label: "A型タイプ",
+        copy: "几帳面で堅実。準備と記録でチームに安心をもたらす。",
         lines: [
-          "ふむ……秩序のカードが微笑んでいる。",
-          "あなたの武器は“準備力”。",
-          "TMCでは手順書・記録・エビデンス確認で活きる！"
+          "とせいくんの占い結果は……",
+          "あなたは………… A型タイプ！！",
+          "段取り力と正確さが最大の武器だね。",
+          "当たったかな？（とせいくん）"
         ],
         tips: [
-          "チェックリスト共有で抜け漏れ防止",
-          "採点観点を冒頭に合意して迷いを減らす"
+          "チェックリスト共有で抜け漏れゼロへ",
+          "採点観点を冒頭で合意して迷いを減らす"
         ]
       },
       B: {
-        name: "B型｜自由発想ハッカー",
-        copy: "固定観念を壊し、新ルートを開拓する。",
+        label: "B型タイプ",
+        copy: "自由で機動力抜群。新ルートの開拓者。",
         lines: [
-          "風のカードが踊っている。",
-          "あなたの武器は“機動力”。",
-          "TMCでは情報収集と現場判断で道を切り拓け！"
+          "とせいくんの占い結果は……",
+          "あなたは………… B型タイプ！！",
+          "スピードと行動力でチャンスを広げる！",
+          "当たったかな？（とせいくん）"
         ],
         tips: [
-          "一次情報を素早く取りにいく役割で先手",
-          "独走せず、合図と言語化を忘れずに"
+          "一次情報を素早く取りにいく役を担当",
+          "独走しないよう要点の言語化を忘れずに"
         ]
       },
       O: {
-        name: "O型｜包容力キャプテン",
-        copy: "士気と連携を整えて総合力を最大化。",
+        label: "O型タイプ",
+        copy: "包容力と調整力。全体最適で推進するキャプテン。",
         lines: [
-          "太陽のカードが温かく光る。",
-          "あなたの武器は“全体最適”。",
-          "TMCでは役割分担と声かけで質を底上げだ！"
+          "とせいくんの占い結果は……",
+          "あなたは………… O型タイプ！！",
+          "場を整え、皆の力を引き出す達人！",
+          "当たったかな？（とせいくん）"
         ],
         tips: [
-          "詰まりを察知してリリーフ配置",
+          "詰まりの察知→リリーフ配置で流れを作る",
           "最終確認（安全・倫理・説明）担当も◎"
         ]
       },
       AB: {
-        name: "AB型｜二刀流ストラテジスト",
-        copy: "直感×論理で局面に応じた最善手を選ぶ。",
+        label: "AB型タイプ",
+        copy: "直感×論理の二刀流。状況に応じた最善手を選ぶ。",
         lines: [
-          "月と剣のカードが交差する。",
-          "あなたの武器は“ハイブリッド思考”。",
-          "TMCでは仮説⇄検証の回転で一歩先を読む！"
+          "とせいくんの占い結果は……",
+          "あなたは………… AB型タイプ！！",
+          "多面的に考えて一歩先を読むストラテジスト！",
+          "当たったかな？（とせいくん）"
         ],
         tips: [
-          "曖昧さが残る時は“安全側に倒す”合図を",
+          "曖昧さは“安全側に倒す”合図を共有",
           "選択肢を2〜3に絞って合意形成を早める"
         ]
       }
     };
 
     const t = types[main];
-    document.getElementById('type-title').textContent = t.name;
+    document.getElementById('type-title').textContent = "あなたは… " + t.label + "！";
     document.getElementById('type-copy').textContent  = t.copy;
 
-    // tipsをリストに表示
     const ul = document.getElementById('type-desc');
     ul.innerHTML = "";
     t.tips.forEach(function(txt){
@@ -543,7 +542,7 @@
   // ===== 本編（TMC 3問） =====
   const quiz = [
     {
-      story: "🔎 謎1：TMCの真価とは？<br>TMC（とうせいメディカルカップ）は院内の“学び”イベント。では、その主な狙いは？",
+      story: "🔎 謎1：TMCとは？<br>TMCは『とうせいメディカルカップ』の略。これは院内の多職種チームが学び合うイベント。では、その主な狙いは？",
       title: "最も適切なものを選ぼう。",
       choices: [
         {label:"部署ごとの勝敗で予算配分を決める", correct:false},
@@ -586,7 +585,7 @@
     }
   ];
   let quizIndex = 0;
-  const quizImages = ["nazo4.png","nazo5.png","nazo6.png"]; // 任意画像（無ければ空でOK）
+  const quizImages = ["nazo4.png","nazo5.png","nazo6.png"]; // 任意画像（無ければ空でもOK）
 
   function renderQuiz(){
     const q = quiz[quizIndex];
@@ -685,3 +684,4 @@
 </script>
 </body>
 </html>
+
