@@ -365,7 +365,7 @@
   window.goPre = function(){
     if(!nameEl.value.trim()){ nameEl.focus(); nameEl.style.borderColor='#ff8dc7'; return; }
     nameEl.style.borderColor='#ffdff0';
-    preTitle.textContent = "第2弾『TMCとは？』へようこそ、　　" + nameEl.value + "さん。まずは僕があなたの性格を見て　　　血液型診断するね！";
+    preTitle.textContent = "第2弾『TMCとは？』へようこそ、　　" + nameEl.value + "さん。まずは僕があなたの性格を見て血液型診断するね！";
     show(screenPre);
     sendToGoogleForm({ name: nameEl.value, dept: groupEl.value, job: jobEl.value });
   };
