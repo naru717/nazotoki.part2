@@ -268,27 +268,28 @@
   <audio id="seClear" src="seikou.mp3" preload="auto"></audio>
 
 <script>
-  /* =========================
-     Googleフォーム 設定（プレースホルダ）
-     後で実値に差し替えてください
-     ========================= */
-  const GOOGLE_FORM_ACTION = ""; // TODO: formResponse のURL
-  const ENTRY_NAME = "";         // TODO: entry.xxxxx（名前）
-  const ENTRY_DEPT = "";         // TODO: entry.xxxxx（所属）
-  const ENTRY_JOB  = "";         // TODO: entry.xxxxx（職種）
+ /* =========================
+   Googleフォーム 設定（本番）
+   ========================= */
+const GOOGLE_FORM_ACTION = "https://docs.google.com/forms/d/e/1FAIpQLSck4xJl_QK1Xf1cwTAZZwzA6rF1v3Y-zBhzeyxGZYsngfjFzA/formResponse";
+const ENTRY_NAME = "entry.671987270";  // 名前
+const ENTRY_DEPT = "entry.278398549";  // 所属
+const ENTRY_JOB  = "entry.691760735";  // 職種
 
-  function sendToGoogleForm({ name, dept, job }) {
-    try {
-      if (!GOOGLE_FORM_ACTION || !ENTRY_NAME || !ENTRY_DEPT || !ENTRY_JOB) return;
-      const fd = new FormData();
-      fd.append(ENTRY_NAME, name || "");
-      fd.append(ENTRY_DEPT, dept || "");
-      fd.append(ENTRY_JOB,  job  || "");
-      fetch(GOOGLE_FORM_ACTION, { method: "POST", body: fd, mode: "no-cors" })
-        .then(function(){ console.log("✅ Googleフォームに送信しました"); })
-        .catch(function(e){ console.warn("⚠️ 送信エラー:", e); });
-    } catch (e) { console.warn("⚠️ 送信例外:", e); }
+function sendToGoogleForm({ name, dept, job }) {
+  try {
+    if (!GOOGLE_FORM_ACTION || !ENTRY_NAME || !ENTRY_DEPT || !ENTRY_JOB) return;
+    const fd = new FormData();
+    fd.append(ENTRY_NAME, name || "");
+    fd.append(ENTRY_DEPT, dept || "");
+    fd.append(ENTRY_JOB,  job  || "");
+    fetch(GOOGLE_FORM_ACTION, { method: "POST", body: fd, mode: "no-cors" })
+      .then(function(){ console.log("✅ Googleフォームに送信しました"); })
+      .catch(function(e){ console.warn("⚠️ 送信エラー:", e); });
+  } catch (e) {
+    console.warn("⚠️ 送信例外:", e);
   }
+}
 
   // ===== DOM =====
   const nameEl  = document.getElementById('name');
